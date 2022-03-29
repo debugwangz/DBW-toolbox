@@ -4,7 +4,7 @@ from os.path import join as ospj
 from DBWToolbox.paramaters import Paramaters
 from matplotlib import pyplot as plt
 
-sparse_nums = [39,57,75,100]
+sparse_nums = [39, 57, 75, 100]
 
 image = loadmat(ospj('data', 'phantom.mat'))['phantom256']
 

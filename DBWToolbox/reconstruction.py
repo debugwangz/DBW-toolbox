@@ -2,7 +2,6 @@ import astra
 import numpy as np
 
 def get_fan_sino_param(image,param):
-
     angles = np.deg2rad(np.linspace(param['startangle'], param['endangle'], param['nProj'], endpoint=False))
     sino = get_fan_sino(image, source_detector=param['dso'], dect_w=param['detector_width'],
                         dect_count=param['dect_count'], vol_geom_size=param['vol_geom_size'], angles=angles, )
@@ -16,6 +15,7 @@ def recon_fan_param(sino, param):
                      vol_geom_size=param['vol_geom_size'], angles=angles,
                      short_scan=param['short_scan'])
     return sino
+
 
 def get_fan_sino(image, source_detector, dect_w, dect_count, vol_geom_size, angles,):
     astra.algorithm.clear()
@@ -43,8 +43,6 @@ def recon_fan(alg, sino, source_detector, dect_w, vol_geom_size,
     proj_fan_id = astra.create_projector('cuda', proj_geom_fan, vol_geom_fan)
     sinogram_fan_id = astra.data2d.create('-sino', proj_geom_fan, sino)
     rec_fan_id = astra.data2d.create('-vol', vol_geom_fan)
-
-
     cfg_fan = astra.astra_dict(alg)
     cfg_fan['ReconstructionDataId'] = rec_fan_id
     cfg_fan['ProjectionDataId'] = sinogram_fan_id
