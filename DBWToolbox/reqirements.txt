@@ -4,3 +4,5 @@ scikit-image
 scipy
 pandas
 xlwt
+pandas
+xlrd

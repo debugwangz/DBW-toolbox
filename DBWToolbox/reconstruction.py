@@ -1,7 +1,8 @@
 import astra
 import numpy as np
 
-def get_fan_sino_param(image,param):
+
+def get_fan_sino_param(image, param):
     angles = np.deg2rad(np.linspace(param['startangle'], param['endangle'], param['nProj'], endpoint=False))
     sino = get_fan_sino(image, source_detector=param['dso'], dect_w=param['detector_width'],
                         dect_count=param['dect_count'], vol_geom_size=param['vol_geom_size'], angles=angles, )
