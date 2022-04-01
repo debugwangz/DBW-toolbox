@@ -84,21 +84,39 @@ def __init_lines_color(names):
     return lines_color
 
 
+def __init_lines_markers(names):
+    # List of markers in plt https://matplotlib.org/3.1.0/api/markers_api.html?highlight=marker#module-matplotlib.markers
+    lines_marker = {}
+    for name in names:
+        lines_marker[name] = "None"
+    return lines_marker
+
+
+def __init_hatch(names):
+    hatch = {}
+    for name in names:
+        hatch[name] = ""
+    return hatch
+
+
 def show_line_profile(lines: dict, bounds, sub_range, save_path=None, lines_style=None,
-                      lines_color=None, lines_width=None, y_max=-1, loc1=2, loc2=4,
-                      xlabel='Pixel', ylabel='Intensity', dpi=300):
+                      lines_color=None, lines_width=None, lines_marker=None, y_max=-1,
+                      loc1=2, loc2=4, xlabel='Pixel', ylabel='Intensity', dpi=300):
     if lines_style is None:
         lines_style = __init_lines_style(lines.keys())
     if lines_width is None:
         lines_width = __init_lines_width(lines.keys())
     if lines_color is None:
         lines_color = __init_lines_color(lines.keys())
+    if lines_marker is None:
+        lines_marker = __init_lines_markers(lines.keys())
 
     # 画主区域
     fig, ax = plt.subplots(1, 1, figsize=(6, 4))
     for name in lines.keys():
         line = lines[name]
-        ax.plot(range(len(line)), line, linewidth=0.8, label=name, linestyle=lines_style[name],
+        ax.plot(range(len(line)), line, linewidth=0.8, label=name,
+                linestyle=lines_style[name], marker=lines_marker[name],
                 color=lines_color[name])
         ax.legend(loc='upper right', frameon=False, prop={'size': 9})
 
@@ -108,7 +126,8 @@ def show_line_profile(lines: dict, bounds, sub_range, save_path=None, lines_styl
     # 画放大区域
     for name in lines.keys():
         axins.plot(sub_range, lines[name][sub_range], linewidth=lines_width[name],
-                   linestyle=lines_style[name], color=lines_color[name])
+                   linestyle=lines_style[name], color=lines_color[name],
+                    marker=lines_marker[name])
 
     mark_inset(ax, axins, loc1=loc1, loc2=loc2, fc="none", ec='k', lw=1, linestyle=(0, (3, 3)))
     axins.set_xticks([])
@@ -123,5 +142,50 @@ def show_line_profile(lines: dict, bounds, sub_range, save_path=None, lines_styl
     plt.close()
 
 
+def show_histgram(data_list, hatch=None):
+    # if hatch is None:
+    #     hatch = __init_hatch(data_list)
+    time_cost = {}
+    measures = {}
+    measures['TV']={'Time':1.0,
+                   'MSE': 1.0,
+                   'SSIM':(0.7530 - 0.8078 *0.9)/(0.8078*0.1)
+                   }
+    measures['AGIRT']={'Time':2.7866/46.9946,
+                   'MSE': (0.2375 - 0.3356*0.6)/(0.3356*0.4),
+                   'SSIM':   (0.8045 - 0.8078 *0.9)/(0.8078*0.1)  #0.8002
+                   }
+    measures['Restarted AGIRT']={'Time': 5.0107/46.9946 ,
+                   'MSE': (0.2201 - 0.3356*0.6)/(0.3356*0.4),
+                   'SSIM': 1.0  #0.8066
+                   }
+    measures['FBPConvNet'] = {'Time': 1.57117/46.9946,
+                                 'MSE': (0.2152 - 0.3356*0.6)/(0.3356*0.4),
+                                 'SSIM': (0.7985 - 0.8078 *0.9)/(0.8078*0.1) # 0.8066
+                                 }
+    # measures['FBP'] = {'Time': 1.3165/110.6119,
+    #                              'MSE': 1,
+    #                              'SSIM': 1  # 0.8066
+    #                              }
+    bar_width = 0.2
+    indicators = ['Time', 'MSE', 'SSIM']
+    tick_labels = ['TV', 'FBPConvNet' ,'AGIRT', 'Restarted AGIRT']
+    x = np.arange(3)
+    patterns = ['///','...', '---','\\\\\\','++']
+    for tick_label, i in zip(tick_labels, range(len(tick_labels))):
+        measure = measures[tick_label]
+        y = []
+        for indicator in measure.keys():
+            y.append(measure[indicator])
+        plt.bar(x+i*bar_width,y,bar_width, align='center', label=tick_label,
+                hatch=patterns[i], color=color_mappings[tick_labels[i]])
+    # plt.ylim(top=1.6)
+
+    plt.ylabel("Performance(Normalized)")
+    plt.xticks(x + 1.5*bar_width , indicators)
+    plt.legend(loc=(0.43, 0.7))
+    # plt.show()
+    plt.savefig(ospj(plot_save_path, 'performance.png'), dpi=300)
+    plt.close()
 
 
