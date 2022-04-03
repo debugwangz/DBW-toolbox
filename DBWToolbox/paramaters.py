@@ -22,7 +22,9 @@ class Paramaters:
         self.param['dso'] = 141.5261       #光源到旋转中心的距离
         self.param['startangle'] = 0     #旋转起始角度
         self.param['endangle'] = 360   #旋转终止角度
-        self.param['nProj'] = 360        #投影数
+        self.param['full_proj'] = 360        #投影数
+
+        self.param['n_proj'] = 360        #投影数
         self.param['detector_width'] = 0.05
         self.param['u_water'] = 0.0205
         self.param['algorithm'] = 'FBP_CUDA'

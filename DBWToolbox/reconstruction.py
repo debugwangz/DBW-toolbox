@@ -3,19 +3,23 @@ import numpy as np
 
 
 def get_fan_sino_param(image, param):
-    angles = np.deg2rad(np.linspace(param['startangle'], param['endangle'], param['nProj'], endpoint=False))
+    angles = np.deg2rad(np.linspace(param['startangle'], param['endangle'],
+                                    param['n_proj'], endpoint=False))
     sino = get_fan_sino(image, source_detector=param['dso'], dect_w=param['detector_width'],
-                        dect_count=param['dect_count'], vol_geom_size=param['vol_geom_size'], angles=angles, )
+                        dect_count=param['dect_count'], vol_geom_size=param['vol_geom_size'], angles=angles,)
+
+    # sino = sino[np.linspace(0, param['full_proj'], param['n_proj'], endpoint=False, dtype=int)]
     return sino
 
 
 def recon_fan_param(sino, param):
     angles = np.deg2rad(np.linspace(param['startangle'], param['endangle'],
-                                    param['nProj'], endpoint=False))
-    sino = recon_fan(alg=param['algorithm'], sino=sino, source_detector=param['dso'], dect_w=param['detector_width'],
-                     vol_geom_size=param['vol_geom_size'], angles=angles,
-                     short_scan=param['short_scan'])
-    return sino
+                                    param['n_proj'], endpoint=False))
+    image = recon_fan(alg=param['algorithm'], sino=sino, source_detector=param['dso'],
+                      dect_w=param['detector_width'],
+                      vol_geom_size=param['vol_geom_size'], angles=angles,
+                      short_scan=param['short_scan'])
+    return image
 
 
 def get_fan_sino(image, source_detector, dect_w, dect_count, vol_geom_size, angles,):

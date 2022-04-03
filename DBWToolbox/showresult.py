@@ -23,23 +23,23 @@ def write_excel(full_name, data_list: list, alignment=None, sheet_name='sheet',
     style.alignment = alignment
     sheet = work_book.add_sheet(sheet_name)    # 将sheet命名为 sheet_name
     for i in range(len(data_list[0].keys())):
-        column_width = columns_width[data_list[0].keys()[i]]
-        if column_width == -1 or columns_width == None:
+        if columns_width == None:
             sheet.col(i).width = 256 * 17
         else:
+            column_width = columns_width[data_list[0].keys()[i]]
             sheet.col(i).width = column_width
     keys = sorted(data_list[0].keys())
+    if head_name not in keys:
+        raise Exception(print('Missing the head name in excel. Each row and column should have a name！'))
     # head_name 要在第一列
     keys.remove(head_name)
     keys.insert(0, head_name)
     # 填表头
     for i in range(len(keys)):
         sheet.write(0, i, keys[i], style)  # 0行i列
-    if head_name not in keys:
-        print('Missing the head_name in excel. Each row and column should have a name！')
 
-    for row in range(1, len(data_list)):
-        data = data_list[row]
+    for row in range(1, len(data_list)+1):
+        data = data_list[row-1]
         for column in range(len(keys)):
             sheet.write(row, column, data[keys[column]], style)  # 从row行第column列开始写，注意第一行是表头，所以row从第二行开始写
     work_book.save(full_name)
@@ -99,9 +99,10 @@ def __init_hatch(names):
     return hatch
 
 
-def show_line_profile(lines: dict, bounds, sub_range, save_path=None, lines_style=None,
-                      lines_color=None, lines_width=None, lines_marker=None, y_max=-1,
-                      loc1=2, loc2=4, xlabel='Pixel', ylabel='Intensity', dpi=300):
+def show_LIP(lines: dict, bounds, sub_range, is_show=True, save_path=None, lines_style=None,
+             lines_color=None, lines_width=None, lines_marker=None, y_max=-1,
+             loc1=2, loc2=4, xlabel='Pixel', ylabel='Intensity', dpi=300,
+             legend_loc='upper right', ):
     if lines_style is None:
         lines_style = __init_lines_style(lines.keys())
     if lines_width is None:
@@ -118,7 +119,7 @@ def show_line_profile(lines: dict, bounds, sub_range, save_path=None, lines_styl
         ax.plot(range(len(line)), line, linewidth=0.8, label=name,
                 linestyle=lines_style[name], marker=lines_marker[name],
                 color=lines_color[name])
-        ax.legend(loc='upper right', frameon=False, prop={'size': 9})
+        # ax.legend(loc='upper right', frameon=False, prop={'size': 9})
 
     if y_max != -1:
         plt.ylim(top=y_max)
@@ -134,58 +135,59 @@ def show_line_profile(lines: dict, bounds, sub_range, save_path=None, lines_styl
     axins.set_yticks([])
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
-    plt.legend()
+    plt.legend(loc=legend_loc)
     if save_path is not None:
         plt.savefig(save_path, dpi=dpi)
         print('save file in {}'.format(save_path))
-    plt.show()
+    if is_show:
+        plt.show(dpi=600)
     plt.close()
 
 
-def show_histgram(data_list, hatch=None):
-    # if hatch is None:
-    #     hatch = __init_hatch(data_list)
-    time_cost = {}
-    measures = {}
-    measures['TV']={'Time':1.0,
-                   'MSE': 1.0,
-                   'SSIM':(0.7530 - 0.8078 *0.9)/(0.8078*0.1)
-                   }
-    measures['AGIRT']={'Time':2.7866/46.9946,
-                   'MSE': (0.2375 - 0.3356*0.6)/(0.3356*0.4),
-                   'SSIM':   (0.8045 - 0.8078 *0.9)/(0.8078*0.1)  #0.8002
-                   }
-    measures['Restarted AGIRT']={'Time': 5.0107/46.9946 ,
-                   'MSE': (0.2201 - 0.3356*0.6)/(0.3356*0.4),
-                   'SSIM': 1.0  #0.8066
-                   }
-    measures['FBPConvNet'] = {'Time': 1.57117/46.9946,
-                                 'MSE': (0.2152 - 0.3356*0.6)/(0.3356*0.4),
-                                 'SSIM': (0.7985 - 0.8078 *0.9)/(0.8078*0.1) # 0.8066
-                                 }
-    # measures['FBP'] = {'Time': 1.3165/110.6119,
-    #                              'MSE': 1,
-    #                              'SSIM': 1  # 0.8066
-    #                              }
-    bar_width = 0.2
-    indicators = ['Time', 'MSE', 'SSIM']
-    tick_labels = ['TV', 'FBPConvNet' ,'AGIRT', 'Restarted AGIRT']
-    x = np.arange(3)
-    patterns = ['///','...', '---','\\\\\\','++']
-    for tick_label, i in zip(tick_labels, range(len(tick_labels))):
-        measure = measures[tick_label]
-        y = []
-        for indicator in measure.keys():
-            y.append(measure[indicator])
-        plt.bar(x+i*bar_width,y,bar_width, align='center', label=tick_label,
-                hatch=patterns[i], color=color_mappings[tick_labels[i]])
-    # plt.ylim(top=1.6)
-
-    plt.ylabel("Performance(Normalized)")
-    plt.xticks(x + 1.5*bar_width , indicators)
-    plt.legend(loc=(0.43, 0.7))
-    # plt.show()
-    plt.savefig(ospj(plot_save_path, 'performance.png'), dpi=300)
-    plt.close()
-
+# def show_histgram(data_list, hatch=None):
+#     # if hatch is None:
+#     #     hatch = __init_hatch(data_list)
+#     time_cost = {}
+#     measures = {}
+#     measures['TV']={'Time':1.0,
+#                    'MSE': 1.0,
+#                    'SSIM':(0.7530 - 0.8078 *0.9)/(0.8078*0.1)
+#                    }
+#     measures['AGIRT']={'Time':2.7866/46.9946,
+#                    'MSE': (0.2375 - 0.3356*0.6)/(0.3356*0.4),
+#                    'SSIM':   (0.8045 - 0.8078 *0.9)/(0.8078*0.1)  #0.8002
+#                    }
+#     measures['Restarted AGIRT']={'Time': 5.0107/46.9946 ,
+#                    'MSE': (0.2201 - 0.3356*0.6)/(0.3356*0.4),
+#                    'SSIM': 1.0  #0.8066
+#                    }
+#     measures['FBPConvNet'] = {'Time': 1.57117/46.9946,
+#                                  'MSE': (0.2152 - 0.3356*0.6)/(0.3356*0.4),
+#                                  'SSIM': (0.7985 - 0.8078 *0.9)/(0.8078*0.1) # 0.8066
+#                                  }
+#     # measures['FBP'] = {'Time': 1.3165/110.6119,
+#     #                              'MSE': 1,
+#     #                              'SSIM': 1  # 0.8066
+#     #                              }
+#     bar_width = 0.2
+#     indicators = ['Time', 'MSE', 'SSIM']
+#     tick_labels = ['TV', 'FBPConvNet' ,'AGIRT', 'Restarted AGIRT']
+#     x = np.arange(3)
+#     patterns = ['///','...', '---','\\\\\\','++']
+#     for tick_label, i in zip(tick_labels, range(len(tick_labels))):
+#         measure = measures[tick_label]
+#         y = []
+#         for indicator in measure.keys():
+#             y.append(measure[indicator])
+#         plt.bar(x+i*bar_width,y,bar_width, align='center', label=tick_label,
+#                 hatch=patterns[i], color=color_mappings[tick_labels[i]])
+#     # plt.ylim(top=1.6)
+#
+#     plt.ylabel("Performance(Normalized)")
+#     plt.xticks(x + 1.5*bar_width , indicators)
+#     plt.legend(loc=(0.43, 0.7))
+#     # plt.show()
+#     plt.savefig(ospj(plot_save_path, 'performance.png'), dpi=300)
+#     plt.close()
+#
 

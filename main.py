@@ -3,7 +3,7 @@ from scipy.io import loadmat
 from os.path import join as ospj
 from DBWToolbox.paramaters import Paramaters
 from matplotlib import pyplot as plt
-from DBWToolbox.showresult import read_excel, show_line_profile
+from DBWToolbox.showresult import read_excel, show_LIP
 import pandas as pd
 # sparse_nums = [39, 57, 75, 100]
 #
@@ -11,7 +11,7 @@ image = loadmat(ospj('data', 'phantom.mat'))['phantom256']
 lines = {}
 for i in range(0, 256, 64):
     lines[str(i)] = image[i]
-show_line_profile(lines, bounds=(0.05, 0.45, 0.6, 0.5), sub_range=range(64, 128))
+show_LIP(lines, bounds=(0.05, 0.45, 0.6, 0.5), sub_range=range(64, 128))
 #
 # param = Paramaters().param
 # sino = get_fan_sino_param(image, param)
