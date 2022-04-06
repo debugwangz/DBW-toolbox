@@ -3,16 +3,19 @@ from scipy.io import loadmat
 from os.path import join as ospj
 from DBWToolbox.paramaters import Paramaters
 from matplotlib import pyplot as plt
-from DBWToolbox.showresult import write_excel, read_excel, show_LIP
+from DBWToolbox.showresult import write_excel, read_excel_dict, show_LIP, show_histogram
 import pandas as pd
 from DBWToolbox.paramaters import Paramaters
 from DBWToolbox.tools import image_show, images_show
 from skimage.metrics import mean_squared_error as mse, structural_similarity as ssim
+import numpy as np
+
 
 class SparseViewParamaters(Paramaters):
     def __init__(self, sparse_num):
         Paramaters.__init__(self)
         self.param['n_proj'] = sparse_num        #投影数
+
 
 def get_sparse_image(full_image, sparse_nums):
     sinos = {}
@@ -53,11 +56,11 @@ def write_excel_example():
         data['sparse number'] = str(sparse_num)
         data['mse'] = mse(phantom, sparse_image)
         data['ssim'] = ssim(phantom, sparse_image, data_range=phantom.max()-phantom.min())
-        # data['psnr'] = psnr(phantom, sparse_image, data_range=phantom.max()-phantom.min())
         data_list.append(data)
     write_excel(ospj(result_path, 'indicator.xls'), data_list=data_list,
-                sheet_name='sparse indicator', head_name='sparse number')
+                sheet_name='sparse indicator', index='sparse number')
 # write_excel_example()
+
 
 def show_lIP_example():
     sparse_nums = [39, 57, 75, 100]
@@ -72,4 +75,31 @@ def show_lIP_example():
 
     show_LIP(lines, bounds=(0.05, 0.45, 0.6, 0.5), sub_range=range(35, 50),
              loc1=3, loc2=4, save_path=ospj(result_path, 'sparse LIP.png'))
+
 # show_lIP_example()
+
+def show_hist_example():
+    result_path = ospj('..', 'result')
+    data = read_excel_dict(ospj(result_path, 'indicator.xls'), index='sparse number', sheet_name='sparse indicator')
+    show_histogram(data, legend_loc='upper left', save_path=ospj(result_path, 'histgram.png'))
+    pass
+#
+# measures = {}
+# measures['TV'] = {'Time': 1.0,
+#                   'MSE': 1.0,
+#                   'SSIM': (0.7530 - 0.8078 * 0.9) / (0.8078 * 0.1)
+#                   }
+# measures['AGIRT'] = {'Time': 2.7866 / 46.9946,
+#                      'MSE': (0.2375 - 0.3356 * 0.6) / (0.3356 * 0.4),
+#                      'SSIM': (0.8045 - 0.8078 * 0.9) / (0.8078 * 0.1)  # 0.8002
+#                      }
+# measures['Restarted AGIRT'] = {'Time': 5.0107 / 46.9946,
+#                                'MSE': (0.2201 - 0.3356 * 0.6) / (0.3356 * 0.4),
+#                                'SSIM': 1.0  # 0.8066
+#                                }
+# measures['FBPConvNet'] = {'Time': 1.57117 / 46.9946,
+#                           'MSE': (0.2152 - 0.3356 * 0.6) / (0.3356 * 0.4),
+#                           'SSIM': (0.7985 - 0.8078 * 0.9) / (0.8078 * 0.1)  # 0.8066
+#                           }
+#
+show_hist_example()

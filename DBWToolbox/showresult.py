@@ -7,8 +7,9 @@ import numpy as np
 from mpl_toolkits.axes_grid1.inset_locator import mark_inset
 
 
-def write_excel(full_name, data_list: list, alignment=None, sheet_name='sheet',
-                columns_width:dict =None, head_name='name'):
+def write_excel(full_name, data_list: list,
+                alignment=None, sheet_name='sheet',
+                columns_width:dict =None, index='name'):
     if not str.endswith(full_name, '.xls'):
         full_name += '.xls'
     directory, _ = os.path.split(full_name)
@@ -29,11 +30,11 @@ def write_excel(full_name, data_list: list, alignment=None, sheet_name='sheet',
             column_width = columns_width[data_list[0].keys()[i]]
             sheet.col(i).width = column_width
     keys = sorted(data_list[0].keys())
-    if head_name not in keys:
-        raise Exception(print('Missing the head name in excel. Each row and column should have a name！'))
-    # head_name 要在第一列
-    keys.remove(head_name)
-    keys.insert(0, head_name)
+    if index not in keys:
+        raise Exception(print('Missing the index column in excel. Each row and column should have a name！'))
+    # index 要在第一列
+    keys.remove(index)
+    keys.insert(0, index)
     # 填表头
     for i in range(len(keys)):
         sheet.write(0, i, keys[i], style)  # 0行i列
@@ -45,11 +46,25 @@ def write_excel(full_name, data_list: list, alignment=None, sheet_name='sheet',
     work_book.save(full_name)
 
 
-def read_excel(full_name, sheet_name='sheet'):
+def read_excel_dict(full_name, index, sheet_name='sheet'):
+    data_list = read_excel_list(full_name, sheet_name)
+    data = {}
+    for i in range(len(data_list)):
+        row_name = str(data_list[i][index])
+        column_values = {}
+        for column_name in data_list[i].keys():
+            if column_name == index:
+                continue
+            column_values[column_name] = data_list[i][column_name]
+        data[row_name] = column_values
+    return data
+
+
+def read_excel_list(full_name, sheet_name='sheet'):
     if not os.path.isfile(full_name):
         raise Exception(full_name+'is not a file !!!')
 
-    df = pd.DataFrame(pd.read_excel(io='measures_75.xls', sheet_name=sheet_name))
+    df = pd.DataFrame(pd.read_excel(io=full_name, sheet_name=sheet_name))
     data_all = df.to_dict(orient='index')
     data_list = []
     for i in range(len(data_all.keys())):
@@ -71,17 +86,17 @@ def __init_lines_width(names):
     return lines_width
 
 
-def __init_lines_color(names):
+def __init_colors(names):
     # List of colors in plt https://matplotlib.org/3.1.0/gallery/color/named_colors.html
-    lines_color = {}
-    colors = ['blue', 'deeppink', 'green', 'black', 'c', 'm', 'y', 'b', 'g', 'r']
-    if len(names) > len(colors):
+    colors = {}
+    default_colors = ['blue', 'deeppink', 'green', 'black', 'c', 'm', 'y', 'b', 'g', 'r']
+    if len(names) > len(default_colors):
         raise Exception(print('Can not initial line_colors because of too many lines. Please set up lines_color'))
     i = 0
     for name in names:
-        lines_color[name] = colors[i]
+        colors[name] = default_colors[i]
         i += 1
-    return lines_color
+    return colors
 
 
 def __init_lines_markers(names):
@@ -108,7 +123,7 @@ def show_LIP(lines: dict, bounds, sub_range, is_show=True, save_path=None, lines
     if lines_width is None:
         lines_width = __init_lines_width(lines.keys())
     if lines_color is None:
-        lines_color = __init_lines_color(lines.keys())
+        lines_color = __init_colors(lines.keys())
     if lines_marker is None:
         lines_marker = __init_lines_markers(lines.keys())
 
@@ -140,54 +155,38 @@ def show_LIP(lines: dict, bounds, sub_range, is_show=True, save_path=None, lines
         plt.savefig(save_path, dpi=dpi)
         print('save file in {}'.format(save_path))
     if is_show:
-        plt.show(dpi=600)
+        plt.show()
     plt.close()
 
 
-# def show_histgram(data_list, hatch=None):
-#     # if hatch is None:
-#     #     hatch = __init_hatch(data_list)
-#     time_cost = {}
-#     measures = {}
-#     measures['TV']={'Time':1.0,
-#                    'MSE': 1.0,
-#                    'SSIM':(0.7530 - 0.8078 *0.9)/(0.8078*0.1)
-#                    }
-#     measures['AGIRT']={'Time':2.7866/46.9946,
-#                    'MSE': (0.2375 - 0.3356*0.6)/(0.3356*0.4),
-#                    'SSIM':   (0.8045 - 0.8078 *0.9)/(0.8078*0.1)  #0.8002
-#                    }
-#     measures['Restarted AGIRT']={'Time': 5.0107/46.9946 ,
-#                    'MSE': (0.2201 - 0.3356*0.6)/(0.3356*0.4),
-#                    'SSIM': 1.0  #0.8066
-#                    }
-#     measures['FBPConvNet'] = {'Time': 1.57117/46.9946,
-#                                  'MSE': (0.2152 - 0.3356*0.6)/(0.3356*0.4),
-#                                  'SSIM': (0.7985 - 0.8078 *0.9)/(0.8078*0.1) # 0.8066
-#                                  }
-#     # measures['FBP'] = {'Time': 1.3165/110.6119,
-#     #                              'MSE': 1,
-#     #                              'SSIM': 1  # 0.8066
-#     #                              }
-#     bar_width = 0.2
-#     indicators = ['Time', 'MSE', 'SSIM']
-#     tick_labels = ['TV', 'FBPConvNet' ,'AGIRT', 'Restarted AGIRT']
-#     x = np.arange(3)
-#     patterns = ['///','...', '---','\\\\\\','++']
-#     for tick_label, i in zip(tick_labels, range(len(tick_labels))):
-#         measure = measures[tick_label]
-#         y = []
-#         for indicator in measure.keys():
-#             y.append(measure[indicator])
-#         plt.bar(x+i*bar_width,y,bar_width, align='center', label=tick_label,
-#                 hatch=patterns[i], color=color_mappings[tick_labels[i]])
-#     # plt.ylim(top=1.6)
-#
-#     plt.ylabel("Performance(Normalized)")
-#     plt.xticks(x + 1.5*bar_width , indicators)
-#     plt.legend(loc=(0.43, 0.7))
-#     # plt.show()
-#     plt.savefig(ospj(plot_save_path, 'performance.png'), dpi=300)
-#     plt.close()
-#
+def show_histogram(data, hatch=None, bar_width=-1, colors=None, x_label='', y_label='',
+                   save_path=None, is_show=True, legend_loc='upper right', dpi=300):
+    tick_labels = list(data.keys())
+    indicators = list(data[tick_labels[0]].keys())
+    x = np.arange(len(indicators))
+    fig, ax = plt.subplots()
+    if bar_width == -1:
+        bar_width = 1/(len(tick_labels)+1)
+    if hatch is None:
+        hatch = __init_hatch(tick_labels)
+    if colors is None:
+        colors = __init_colors(tick_labels)
+    for tick_label, i in zip(tick_labels, range(len(tick_labels))):
+        measure = data[tick_label]
+        y = []
+        for indicator in indicators:
+            y.append(measure[indicator])
+        ax.bar(x + (i-(len(tick_labels)-1)/2) * bar_width, y, bar_width, label=tick_label,
+               hatch=hatch[tick_label], color=colors[tick_label], )
 
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    ax.set_xticks(x, indicators)
+    ax.legend(loc=legend_loc)
+    fig.tight_layout()
+    if save_path is not None:
+        plt.savefig(save_path, dpi=dpi)
+    if is_show:
+        plt.show()
+
+    plt.close()
