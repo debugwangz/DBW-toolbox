@@ -82,24 +82,4 @@ def show_hist_example():
     result_path = ospj('..', 'result')
     data = read_excel_dict(ospj(result_path, 'indicator.xls'), index='sparse number', sheet_name='sparse indicator')
     show_histogram(data, legend_loc='upper left', save_path=ospj(result_path, 'histgram.png'))
-    pass
-#
-# measures = {}
-# measures['TV'] = {'Time': 1.0,
-#                   'MSE': 1.0,
-#                   'SSIM': (0.7530 - 0.8078 * 0.9) / (0.8078 * 0.1)
-#                   }
-# measures['AGIRT'] = {'Time': 2.7866 / 46.9946,
-#                      'MSE': (0.2375 - 0.3356 * 0.6) / (0.3356 * 0.4),
-#                      'SSIM': (0.8045 - 0.8078 * 0.9) / (0.8078 * 0.1)  # 0.8002
-#                      }
-# measures['Restarted AGIRT'] = {'Time': 5.0107 / 46.9946,
-#                                'MSE': (0.2201 - 0.3356 * 0.6) / (0.3356 * 0.4),
-#                                'SSIM': 1.0  # 0.8066
-#                                }
-# measures['FBPConvNet'] = {'Time': 1.57117 / 46.9946,
-#                           'MSE': (0.2152 - 0.3356 * 0.6) / (0.3356 * 0.4),
-#                           'SSIM': (0.7985 - 0.8078 * 0.9) / (0.8078 * 0.1)  # 0.8066
-#                           }
-#
-show_hist_example()
+# show_hist_example()

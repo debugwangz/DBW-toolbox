@@ -92,10 +92,8 @@ def __init_colors(names):
     default_colors = ['blue', 'deeppink', 'green', 'black', 'c', 'm', 'y', 'b', 'g', 'r']
     if len(names) > len(default_colors):
         raise Exception(print('Can not initial line_colors because of too many lines. Please set up lines_color'))
-    i = 0
-    for name in names:
+    for name, i in zip(names,range(len(names))):
         colors[name] = default_colors[i]
-        i += 1
     return colors
 
 
@@ -111,6 +109,16 @@ def __init_hatch(names):
     hatch = {}
     for name in names:
         hatch[name] = ""
+    return hatch
+
+
+def __default_hatch(names):
+    hatch = {}
+    patterns = ['///', '...', '---', '\\\\\\', '++']
+    if len(names) > len(patterns):
+        raise Exception(print('Can not get default patterns because of too many names. Please set up patterns'))
+    for name, i in zip(names, range(len(names))):
+        hatch[name] = patterns[i]
     return hatch
 
 
@@ -160,7 +168,7 @@ def show_LIP(lines: dict, bounds, sub_range, is_show=True, save_path=None, lines
 
 
 def show_histogram(data, hatch=None, bar_width=-1, colors=None, x_label='', y_label='',
-                   save_path=None, is_show=True, legend_loc='upper right', dpi=300):
+                   save_path=None, is_show=True, legend_loc='upper right', dpi=300, default_hatch=False):
     tick_labels = list(data.keys())
     indicators = list(data[tick_labels[0]].keys())
     x = np.arange(len(indicators))
@@ -168,7 +176,11 @@ def show_histogram(data, hatch=None, bar_width=-1, colors=None, x_label='', y_la
     if bar_width == -1:
         bar_width = 1/(len(tick_labels)+1)
     if hatch is None:
-        hatch = __init_hatch(tick_labels)
+        if default_hatch:
+            hatch = __default_hatch(tick_labels)
+        else:
+            hatch = __init_hatch(tick_labels)
+
     if colors is None:
         colors = __init_colors(tick_labels)
     for tick_label, i in zip(tick_labels, range(len(tick_labels))):
