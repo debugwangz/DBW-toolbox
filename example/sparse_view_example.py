@@ -28,7 +28,17 @@ def get_sparse_image(full_image, sparse_nums):
         images[str(sparse_num)] = rec_image
     return sinos, images
 
+plt.gray()
+result_path = ospj('..', 'result')
+phantom = loadmat(ospj('..', 'data', 'phantom.mat'))['phantom256']
+param = SparseViewParamaters(720).param
+param['algorithm'] = 'SIRT_CUDA'
+param['interation'] = 100
+sino = get_fan_sino_param(phantom, param)
+image_show(sino)
+rec_image = recon_fan_param(sino, param)
 
+image_show(rec_image)
 def rec_example():
     plt.gray()
     result_path = ospj('..', 'result')

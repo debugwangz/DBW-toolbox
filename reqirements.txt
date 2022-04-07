@@ -1,8 +1,0 @@
-numpy
-matplotlib
-scikit-image
-scipy
-pandas
-xlwt
-pandas
-xlrd
