@@ -28,19 +28,7 @@ def get_sparse_image(full_image, sparse_nums):
         images[str(sparse_num)] = rec_image
     return sinos, images
 
-plt.gray()
-result_path = ospj('..', 'result')
-phantom = loadmat(ospj('..', 'data', 'phantom.mat'))['phantom256']
-param = SparseViewParamaters(720).param
-param['algorithm'] = 'SIRT_CUDA'
-param['interation'] = 100
-sino = get_fan_sino_param(phantom, param)
-image_show(sino)
-rec_image = recon_fan_param(sino, param)
-
-image_show(rec_image)
 def rec_example():
-    plt.gray()
     result_path = ospj('..', 'result')
     phantom = loadmat(ospj('..', 'data', 'phantom.mat'))['phantom256']
     image_show(phantom, save_path=ospj(result_path, 'phantom256.png'))
@@ -50,12 +38,11 @@ def rec_example():
                 save_path=ospj(result_path, 'sparse-sinograms.png'))
     images_show(images, (2, 2), figure_size=(10, 10), axis_off=True,
                 save_path=ospj(result_path, 'sparse-images.png'))
-# rec_example()
+rec_example()
 
 
 def write_excel_example():
     sparse_nums = [39, 57, 75, 100]
-    plt.gray()
     result_path = ospj('..', 'result')
     phantom = loadmat(ospj('..', 'data', 'phantom.mat'))['phantom256']
     _, images = get_sparse_image(phantom, sparse_nums)
@@ -74,7 +61,6 @@ def write_excel_example():
 
 def show_lIP_example():
     sparse_nums = [39, 57, 75, 100]
-    plt.gray()
     result_path = ospj('..', 'result')
     phantom = loadmat(ospj('..', 'data', 'phantom.mat'))['phantom256']
     _, images = get_sparse_image(phantom, sparse_nums)
@@ -90,6 +76,7 @@ def show_lIP_example():
 
 def show_hist_example():
     result_path = ospj('..', 'result')
-    data = read_excel_dict(ospj(result_path, 'indicator.xls'), index='sparse number', sheet_name='sparse indicator')
+    data = read_excel_dict(ospj(result_path, 'indicator.xls'), index='sparse number',
+                           sheet_name='sparse indicator')
     show_histogram(data, legend_loc='upper left', save_path=ospj(result_path, 'histgram.png'))
 # show_hist_example()

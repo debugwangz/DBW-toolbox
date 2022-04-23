@@ -5,3 +5,7 @@
 *.pyc
 *.pyc
 *.pyc
+*.pyc
+result/indicator.xls
+result/sparse-images.png
+result/sparse-sinograms.png

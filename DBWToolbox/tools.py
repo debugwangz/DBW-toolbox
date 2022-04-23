@@ -46,7 +46,12 @@ def tif2np(fpath):
 
 
 def image_show(image, is_show=True, save_path=None,
-               axis_off=True, title=None, dpi=300):
+               axis_off=True, title=None, dpi=300,
+               is_gray=True):
+    cmap = None
+    if is_gray:
+        cmap = plt.get_cmap()
+        plt.gray()
     plt.imshow(image)
     if save_path is not None:
         directory, _ = os.path.split(save_path)
@@ -59,10 +64,17 @@ def image_show(image, is_show=True, save_path=None,
     if is_show:
         plt.show()
     plt.close()
+    if is_gray:
+        plt.set_cmap(cmap)
 
 
 def images_show(images, shape, is_show=True, save_path=None,
-                axis_off=True, figure_size=(10, 10), dpi=300):
+                axis_off=True, figure_size=(10, 10), dpi=300,
+                is_gray=True):
+    cmap=None
+    if is_gray:
+        cmap = plt.get_cmap()
+        plt.gray()
     titles = list(images.keys())
     fig, axs = plt.subplots(nrows=shape[0], ncols=shape[1], constrained_layout=True, figsize=figure_size)
     axs = axs.reshape(shape)
@@ -81,3 +93,5 @@ def images_show(images, shape, is_show=True, save_path=None,
     if is_show:
         plt.show()
     plt.close()
+    if is_gray:
+        plt.set_cmap(cmap)
