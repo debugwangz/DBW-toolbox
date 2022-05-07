@@ -1,49 +1,43 @@
 import os
-import xlwt
+# import xlwt
 from matplotlib import pyplot as plt
 from os.path import join as ospj
 import pandas as pd
 import numpy as np
 from mpl_toolkits.axes_grid1.inset_locator import mark_inset
+import numpy as np
+import pandas as pd
+import sys, os
+from styleframe import StyleFrame
 
 
 def write_excel(full_name, data_list: list,
+                sort_by=None, sort_axis=0, ascending=True,
                 alignment=None, sheet_name='sheet',
-                columns_width:dict =None, index='name'):
-    if not str.endswith(full_name, '.xls'):
-        full_name += '.xls'
-    directory, _ = os.path.split(full_name)
-    if len(directory) != 0:
-        os.makedirs(directory, exist_ok=True)
-    work_book = xlwt.Workbook(encoding='utf-8')
-    if alignment is None:
-        alignment = xlwt.Alignment()
-        alignment.wrap = 1
-        alignment.horz = 0x02
-    style = xlwt.XFStyle()
-    style.alignment = alignment
-    sheet = work_book.add_sheet(sheet_name)    # 将sheet命名为 sheet_name
-    for i in range(len(data_list[0].keys())):
-        if columns_width == None:
-            sheet.col(i).width = 256 * 17
-        else:
-            column_width = columns_width[data_list[0].keys()[i]]
-            sheet.col(i).width = column_width
-    keys = sorted(data_list[0].keys())
-    if index not in keys:
-        raise Exception(print('Missing the index column in excel. Each row and column should have a name！'))
-    # index 要在第一列
-    keys.remove(index)
-    keys.insert(0, index)
-    # 填表头
-    for i in range(len(keys)):
-        sheet.write(0, i, keys[i], style)  # 0行i列
+                columns_width: dict =None, index='name'):
 
-    for row in range(1, len(data_list)+1):
-        data = data_list[row-1]
-        for column in range(len(keys)):
-            sheet.write(row, column, data[keys[column]], style)  # 从row行第column列开始写，注意第一行是表头，所以row从第二行开始写
-    work_book.save(full_name)
+    table_head = list(data_list[0].keys())
+    if index not in table_head:
+        raise Exception(print('Missing the index column in excel. Each row and column should have a name！'))
+
+    if table_head[0] != index:     # index 要在第一列
+        table_head.remove(index)
+        table_head.insert(0, index)
+    table_content = {}
+    #构建表内容
+    for i in range(len(data_list)):
+        for index in table_head:
+            if index not in table_content.keys():
+                table_content[index] = []
+            table_content[index].append(data_list[i][index])
+    frame = pd.DataFrame.from_dict(table_content)
+    if sort_by is not None:
+        frame.sort_values(by=sort_by, axis=sort_axis, ascending=ascending, inplace=True)
+    with StyleFrame.ExcelWriter(full_name) as writer:# 注意style只接受openpyxl作为engine
+        sf = StyleFrame(frame)
+        sf.to_excel(writer, sheet_name=sheet_name, index=False, best_fit=table_head)
+
+    return
 
 
 def read_excel_dict(full_name, index, sheet_name='sheet'):

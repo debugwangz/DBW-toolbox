@@ -1,11 +1,9 @@
-from DBWToolbox.reconstruction import get_fan_sino_param, recon_fan_param
+from DBWToolbox.reconstruction import get_fan_sino_param, recon_fan_param, Paramaters
 from scipy.io import loadmat
 from os.path import join as ospj
-from DBWToolbox.paramaters import Paramaters
 from matplotlib import pyplot as plt
 from DBWToolbox.showresult import write_excel, read_excel_dict, show_LIP, show_histogram
 import pandas as pd
-from DBWToolbox.paramaters import Paramaters
 from DBWToolbox.tools import image_show, images_show
 from skimage.metrics import mean_squared_error as mse, structural_similarity as ssim
 import numpy as np
@@ -13,7 +11,7 @@ import numpy as np
 
 class SparseViewParamaters(Paramaters):
     def __init__(self, sparse_num):
-        Paramaters.__init__(self)
+        super(SparseViewParamaters, self).__init__()
         self.param['n_proj'] = sparse_num        #投影数
 
 
@@ -38,7 +36,7 @@ def rec_example():
                 save_path=ospj(result_path, 'sparse-sinograms.png'))
     images_show(images, (2, 2), figure_size=(10, 10), axis_off=True,
                 save_path=ospj(result_path, 'sparse-images.png'))
-rec_example()
+# rec_example()
 
 
 def write_excel_example():
@@ -54,9 +52,9 @@ def write_excel_example():
         data['mse'] = mse(phantom, sparse_image)
         data['ssim'] = ssim(phantom, sparse_image, data_range=phantom.max()-phantom.min())
         data_list.append(data)
-    write_excel(ospj(result_path, 'indicator.xls'), data_list=data_list,
+    write_excel(ospj(result_path, 'indicator.xlsx'), data_list=data_list,
                 sheet_name='sparse indicator', index='sparse number')
-# write_excel_example()
+write_excel_example()
 
 
 def show_lIP_example():
