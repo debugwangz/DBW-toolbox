@@ -1,12 +1,9 @@
 from DBWToolbox.reconstruction import get_fan_sino_param, recon_fan_param, Paramaters
 from scipy.io import loadmat
 from os.path import join as ospj
-from matplotlib import pyplot as plt
 from DBWToolbox.showresult import write_excel, read_excel_dict, show_LIP, show_histogram
-import pandas as pd
 from DBWToolbox.tools import image_show, images_show
 from skimage.metrics import mean_squared_error as mse, structural_similarity as ssim
-import numpy as np
 
 
 class SparseViewParamaters(Paramaters):
@@ -36,7 +33,7 @@ def rec_example():
                 save_path=ospj(result_path, 'sparse-sinograms.png'))
     images_show(images, (2, 2), figure_size=(10, 10), axis_off=True,
                 save_path=ospj(result_path, 'sparse-images.png'))
-# rec_example()
+rec_example()
 
 
 def write_excel_example():
@@ -70,11 +67,11 @@ def show_lIP_example():
     show_LIP(lines, bounds=(0.05, 0.45, 0.6, 0.5), sub_range=range(35, 50),
              loc1=3, loc2=4, save_path=ospj(result_path, 'sparse LIP.png'))
 
-# show_lIP_example()
+show_lIP_example()
 
 def show_hist_example():
     result_path = ospj('..', 'result')
-    data = read_excel_dict(ospj(result_path, 'indicator.xls'), index='sparse number',
+    data = read_excel_dict(ospj(result_path, 'indicator.xlsx'), index='sparse number',
                            sheet_name='sparse indicator')
     show_histogram(data, legend_loc='upper left', save_path=ospj(result_path, 'histgram.png'))
-# show_hist_example()
+show_hist_example()
