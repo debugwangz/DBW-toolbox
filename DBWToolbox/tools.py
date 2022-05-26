@@ -68,15 +68,19 @@ def image_show(image, is_show=True, save_path=None,
         plt.set_cmap(cmap)
 
 
+
+
 def images_show(images, shape, is_show=True, save_path=None,
-                axis_off=True, figure_size=(10, 10), dpi=300,
-                is_gray=True):
-    cmap=None
+                axis_off=True, figure_size=(7, 7), dpi=300,
+                line_config: dict = None, is_gray=True):
+    cmap = None
     if is_gray:
         cmap = plt.get_cmap()
         plt.gray()
+
     titles = list(images.keys())
-    fig, axs = plt.subplots(nrows=shape[0], ncols=shape[1], constrained_layout=True, figsize=figure_size)
+    fig, axs = plt.subplots(nrows=shape[0], ncols=shape[1], constrained_layout=False, figsize=figure_size)
+
     axs = axs.reshape(shape)
     for i in range(shape[0]):
         for j in range(shape[1]):
@@ -86,8 +90,16 @@ def images_show(images, shape, is_show=True, save_path=None,
             title = titles[i*shape[1] + j]
             axs[i, j].set_title(title)
             axs[i, j].imshow(images.get(title))
+            if line_config is None:
+                continue
+            if title in line_config.keys():
+                axs[i, j].plot(line_config[title]['x'], line_config[title]['y'],
+                               line_config[title]['color'],
+                               linewidth=line_config[title]['linewidth'],
+                               linestyle=line_config[title]['linestyle'])
             if axis_off:
                 axs[i, j].axis('off')
+    plt.tight_layout()
     if save_path is not None:
         plt.savefig(save_path, dpi=dpi)
     if is_show:
@@ -95,3 +107,4 @@ def images_show(images, shape, is_show=True, save_path=None,
     plt.close()
     if is_gray:
         plt.set_cmap(cmap)
+
