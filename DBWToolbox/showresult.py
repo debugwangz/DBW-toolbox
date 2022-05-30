@@ -78,10 +78,14 @@ def __init_lines_width(names):
 def __init_colors(names):
     # List of colors in plt https://matplotlib.org/3.1.0/gallery/color/named_colors.html
     colors = {}
-    default_colors = ['blue', 'deeppink', 'green', 'black', 'c', 'm', 'y', 'b', 'g', 'r']
+    default_colors = ['#845ec2', '#d65db1', '#ff6f91', '#ffc75f',
+                      '#008e9b', '#008f7a',
+                      'c', 'm', 'y', 'b', 'g', 'r']
+
+    # default_colors = ['blue', 'deeppink', 'green', 'black', 'c', 'm', 'y', 'b', 'g', 'r']
     if len(names) > len(default_colors):
         raise Exception(print('Can not initial line_colors because of too many lines. Please set up lines_color'))
-    for name, i in zip(names,range(len(names))):
+    for name, i in zip(names, range(len(names))):
         colors[name] = default_colors[i]
     return colors
 

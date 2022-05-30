@@ -33,7 +33,7 @@ def rec_example():
                 save_path=ospj(result_path, 'sparse-sinograms.png'))
     images_show(images, (2, 2), figure_size=(10, 10), axis_off=True,
                 save_path=ospj(result_path, 'sparse-images.png'))
-rec_example()
+# rec_example()
 
 
 def write_excel_example():
@@ -51,7 +51,7 @@ def write_excel_example():
         data_list.append(data)
     write_excel(ospj(result_path, 'indicator.xlsx'), data_list=data_list,
                 sheet_name='sparse indicator', index='sparse number')
-write_excel_example()
+# write_excel_example()
 
 
 def show_lIP_example():
@@ -74,4 +74,4 @@ def show_hist_example():
     data = read_excel_dict(ospj(result_path, 'indicator.xlsx'), index='sparse number',
                            sheet_name='sparse indicator')
     show_histogram(data, legend_loc='upper left', save_path=ospj(result_path, 'histgram.png'))
-show_hist_example()
+# show_hist_example()
