@@ -5,6 +5,22 @@ import pydicom
 from matplotlib import pyplot as plt
 
 
+def HU_to_attuation(image, water):
+    image = image.astype(np.float32)
+    image /= 1000
+    image *= water
+    image += water
+    return image
+
+
+def Attuation_to_HU(image, water):
+    image -= water
+    image /= water
+    image *= 1000
+    image = image.astype(np.int16)
+    return image
+
+
 def save_image2tif(image, filepath, filename, is_rewrite=True):
     if not is_rewrite:
         if os.path.isfile(os.path.join(filepath, filename + '.tif')):

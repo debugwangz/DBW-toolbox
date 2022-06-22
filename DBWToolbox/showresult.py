@@ -154,7 +154,6 @@ def show_LIP(lines: dict, bounds, sub_range, is_show=True, save_path=None, lines
     plt.legend(loc=legend_loc)
     if save_path is not None:
         plt.savefig(save_path, dpi=dpi)
-        print('save file in {}'.format(save_path))
     if is_show:
         plt.show()
     plt.close()
