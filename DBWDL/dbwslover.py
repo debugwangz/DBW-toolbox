@@ -3,19 +3,13 @@ import torch
 import os
 import abc
 
-from DBWToolbox.reconstruction import Paramaters
-from DBWToolbox.tools import images_show, save_image2tif
-from DBWToolbox.showresult import show_LIP
+from DBWToolbox.tools import save_image2tif
 from DBWToolbox.showresult import write_excel
 import numpy as np
 from os.path import join as ospj
 import time
 import statistics as sta
-from torch_radon import RadonFanbeam
-import warnings
-from torch import optim
-from math import sqrt
-from math import ceil
+from DBWToolbox.tools import seconds2time
 
 
 class SolverBase(metaclass=abc.ABCMeta):
@@ -47,6 +41,10 @@ class SolverBase(metaclass=abc.ABCMeta):
         self.checkpoint_pool = {}
         self.metrics_pool = {}
         self.test_epoch = kwargs['test_epoch']
+        if 'time_cost_n_epoch' in kwargs.keys() and kwargs['print_n_epoch'] != -1:
+            self.print_n_epoch = kwargs['print_n_epoch']
+        else:
+            self.print_n_epoch = -1
         self.init_metrics()
         if 'device' in kwargs.keys():
             self.device = torch.device(kwargs['device'])
@@ -128,11 +126,12 @@ class SolverBase(metaclass=abc.ABCMeta):
     def save_metrics(self, **kwargs):
         metrics_name = self.get_metrics_name(**kwargs)
         print('save metrics in {}'.format(os.path.join(self.checkpoint_path, metrics_name)))
+        metrics = {}
         for key in self.metrics_pool.keys():
             if isinstance(self.metrics_pool[key], list):
-                self.metrics_pool[key] = np.array(self.metrics_pool[key])
+                metrics[key] = np.array(self.metrics_pool[key])
         f = os.path.join(self.metrics_path, metrics_name)
-        np.save(f, self.metrics_pool)
+        np.save(f, metrics)
 
     def load_metrics(self, **kwargs):
         metrics_name = self.get_metrics_name(**kwargs)
@@ -160,25 +159,38 @@ class SolverBase(metaclass=abc.ABCMeta):
         return metrics
 
 
-    def training_step(self, batch, batch_idx):
-        return None
-
-    def validation_step(self, batch, batch_idx):
-        return None
-
-    def test_step(self, batch, batch_idx):
+    def training_begin(self):
         return None
 
     def training_epoch_begin(self):
         return None
 
+    def training_step(self, batch, batch_idx):
+        return None
+
     def training_epoch_end(self, outputs):
+        return None
+
+    def training_end(self):
+        return None
+
+
+    def validation_begin(self):
         return None
 
     def validation_epoch_begin(self):
         return None
 
+    def validation_step(self, batch, batch_idx):
+        return None
+
     def validation_epoch_end(self, outputs):
+        return None
+
+    def validation_end(self):
+        return None
+
+    def test_step(self, batch, batch_idx):
         return None
 
     def test_begin(self):
@@ -186,6 +198,12 @@ class SolverBase(metaclass=abc.ABCMeta):
 
     def test_end(self, outputs):
         return None
+
+    def print_every_n_epoch(self, train_outputs=None, validation_outputs=None, time_cost=0.0):
+        return None
+
+    def save_model(self, train_outputs=None, validation_outputs=None,):
+        pass
 
     """Combine dicts, combine values with same key to a list instead of overwirting the value"""
     def combine_dict(self, dicts: list):
@@ -203,11 +221,12 @@ class SolverBase(metaclass=abc.ABCMeta):
         start_epoch = 1
         if validation_loader is None:
             print('Validation loader is None, validation step will not be executed')
-
+        self.training_begin()
         if self.resume_epoch != -1:
             start_epoch = self.resume_epoch+1
+        epoch_start = time.time()
+        # ---------------------- train one epoch --------------------------------------
         for epoch in range(start_epoch, self.num_epochs+1):
-            epoch_start = time.time()
             self.current_epoch = epoch
             train_epoch_metrics = {}
             self.training_epoch_begin()
@@ -220,25 +239,32 @@ class SolverBase(metaclass=abc.ABCMeta):
                 assert isinstance(step_metrics, dict), "training_step should return dict"
                 train_epoch_metrics = self.combine_dict([step_metrics, train_epoch_metrics])
             self.training_epoch_end(train_epoch_metrics)
-
-            if validation_loader is not None:
-                validation_epoch_metrics = {}
-                self.validation_epoch_begin()
-                for batch_idx, batch in enumerate(validation_loader):
-                    for i in range(len(batch)):
-                        item = batch[i]
-                        if isinstance(item, torch.Tensor):
-                            batch[i] = batch[i].to(self.device)
-                    step_metrics = self.validation_step(batch, batch_idx)
-                    assert isinstance(step_metrics, dict), "validation_step should return dict"
-                    validation_epoch_metrics = self.combine_dict([step_metrics, validation_epoch_metrics])
-                self.validation_epoch_end(validation_epoch_metrics)
-            epoch_end = time.time()
-            print('epoch cost {} s'.format(epoch_end-epoch_start))
+            # ---------------------- validate one epoch --------------------------------------
+            with torch.no_grad():
+                validation_epoch_metrics = None
+                if validation_loader is not None:
+                    validation_epoch_metrics = {}
+                    self.validation_epoch_begin()
+                    for batch_idx, batch in enumerate(validation_loader):
+                        for i in range(len(batch)):
+                            item = batch[i]
+                            if isinstance(item, torch.Tensor):
+                                batch[i] = batch[i].to(self.device)
+                        step_metrics = self.validation_step(batch, batch_idx)
+                        assert isinstance(step_metrics, dict), "validation_step should return dict"
+                        validation_epoch_metrics = self.combine_dict([step_metrics, validation_epoch_metrics])
+                    self.validation_epoch_end(validation_epoch_metrics)
+            # print something in every n epoch(s) if needed
+            if self.print_n_epoch != -1 and epoch % self.print_n_epoch == 0:
+                epoch_end = time.time()
+                self.print_every_n_epoch(train_outputs=train_epoch_metrics, validation_outputs=validation_epoch_metrics,
+                                         time_cost=epoch_end-epoch_start)
+                epoch_start = time.time()
+            self.save_model(train_outputs=train_epoch_metrics, validation_outputs=validation_epoch_metrics)
 
         end = time.time()
-        self.save_metrics(epoch=self.current_epoch)
-        print('Total time is {} seconds'.format(end - start))
+        print('Total time cost is {}'.format(seconds2time(end-start)))
+        self.training_end()
 
     def _test_step(self, batch, batch_idx):
         for i in range(len(batch)):
@@ -250,7 +276,7 @@ class SolverBase(metaclass=abc.ABCMeta):
         if 'metric_kwargs' in test_result.keys():
             step_test_metrics = test_result['metric_kwargs']
         if 'save_result' in test_result.keys():
-            assert self.batch_size == 1, 'batch size shoule be 1 if you want to save image'
+            assert self.batch_size == 1, 'batch size should be 1 if you want to save image'
             self.save_result(**test_result['save_result'])
         return step_test_metrics
 
