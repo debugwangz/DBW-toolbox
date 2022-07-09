@@ -41,10 +41,16 @@ class SolverBase(metaclass=abc.ABCMeta):
         self.checkpoint_pool = {}
         self.metrics_pool = {}
         self.test_epoch = kwargs['test_epoch']
-        if 'time_cost_n_epoch' in kwargs.keys() and kwargs['print_n_epoch'] != -1:
+        if 'print_n_epoch' in kwargs.keys() and kwargs['print_n_epoch'] != -1:
             self.print_n_epoch = kwargs['print_n_epoch']
         else:
             self.print_n_epoch = -1
+
+        if 'is_save' in kwargs.keys():
+            self.is_save = kwargs['is_save']
+        else:
+            self.is_save = True
+
         self.init_metrics()
         if 'device' in kwargs.keys():
             self.device = torch.device(kwargs['device'])
@@ -85,6 +91,8 @@ class SolverBase(metaclass=abc.ABCMeta):
         self.register_save_metrics('test_mse', self.test_mse)
 
     def init_dir(self, hyperparam_path=''):
+        if self.is_save == False:
+            return
         self.checkpoint_path = ospj(self.default_save_dir, hyperparam_path, 'check_point')
         self.metrics_path = ospj(self.default_save_dir, hyperparam_path, 'metrics')
         self.result_path = ospj(self.default_save_dir, hyperparam_path, 'result_path')
@@ -109,6 +117,8 @@ class SolverBase(metaclass=abc.ABCMeta):
         self.load_checkpoint(**kwargs)
 
     def save_checkpoint(self, **kwargs):
+        if self.is_save == False:
+            return
         checkpoint_name = self.get_checkpoint_name(**kwargs)
         print('save model in {}'.format(os.path.join(self.checkpoint_path, checkpoint_name)))
         f = os.path.join(self.checkpoint_path, checkpoint_name)
@@ -124,6 +134,8 @@ class SolverBase(metaclass=abc.ABCMeta):
         return checkpoint
 
     def save_metrics(self, **kwargs):
+        if self.is_save == False:
+            return
         metrics_name = self.get_metrics_name(**kwargs)
         print('save metrics in {}'.format(os.path.join(self.checkpoint_path, metrics_name)))
         metrics = {}
@@ -263,7 +275,7 @@ class SolverBase(metaclass=abc.ABCMeta):
             self.save_model(train_outputs=train_epoch_metrics, validation_outputs=validation_epoch_metrics)
 
         end = time.time()
-        print('Total time cost is {}'.format(seconds2time(end-start)))
+        print('Training totally cost {}'.format(seconds2time(end-start)))
         self.training_end()
 
     def _test_step(self, batch, batch_idx):
@@ -281,6 +293,8 @@ class SolverBase(metaclass=abc.ABCMeta):
         return step_test_metrics
 
     def save_result(self, filename, image):
+        if self.is_save == False:
+            return
         save_image2tif(image, filepath=self.result_path, filename=filename)
 
     def combine_test_metrics(self, step_test_metrics, test_metrics):
@@ -310,6 +324,8 @@ class SolverBase(metaclass=abc.ABCMeta):
 
 
     def save_test_metrics(self, test_metrics, **kwargs):
+        if self.is_save == False:
+            return
         write_excel(ospj(self.metrics_path, 'test_metrics.xlsx'), data_list=test_metrics, index='method')
 
     def compute_test_metrics(self, test_metrics, is_print=False):

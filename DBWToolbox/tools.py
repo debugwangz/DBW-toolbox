@@ -1,8 +1,11 @@
 import os
 import numpy as np
-from PIL import Image
+# from PIL import Image
 import pydicom
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
+from math import ceil
+import json
+from skimage.external import tifffile as tif
 
 
 def HU_to_attuation(image, water):
@@ -31,7 +34,8 @@ def save_image2tif(image, filepath, filename, is_rewrite=True):
 
     if not type(image) is np.ndarray:
         image = np.array(image)
-    Image.fromarray(image).save(os.path.join(filepath, filename + '.tif'))
+    tif.imsave(os.path.join(filepath, filename + '.tif'), image)
+    # Image.fromarray(image).save(os.path.join(filepath, filename + '.tif'))
 
 
 def read_dicom_mayo(path,):
@@ -57,70 +61,32 @@ def tif2np(fpath):
     if not fpath.endswith('.tif'):
         print('File is not tif!')
         return None
-    array = np.array(Image.open(fpath))
+    array = np.array(tif.imread(fpath))
     return array
 
 
-def image_show(image, is_show=True, save_path=None,
-               axis_off=True, title=None, dpi=300,
-               is_gray=True):
-    cmap = None
-    if is_gray:
-        cmap = plt.get_cmap()
-        plt.gray()
-    plt.imshow(image)
-    if save_path is not None:
-        directory, _ = os.path.split(save_path)
-        os.makedirs(directory, exist_ok=True)
-        plt.savefig(save_path, dpi=dpi)
-    if axis_off:
-        plt.axis('off')
-    if title is not None:
-        plt.title(title)
-    if is_show:
-        plt.show()
-    plt.close()
-    if is_gray:
-        plt.set_cmap(cmap)
+def remove_empty(d:dict):
+    d_tmp = {}
+    for key in d.keys():
+        value = d[key]
+        if len(value) != 0:
+            d_tmp[key] = value
+    return d_tmp
 
 
+def seconds2time(seconds:float):
+    seconds = ceil(seconds)
+    m, s = divmod(seconds, 60)
+    h, m = divmod(m, 60)
+    if h > 0:
+        return "%dh : %02dm : %02ds" % (h, m, s)
+    if m > 0:
+        return "%02dm : %02ds" % (m, s)
+    return "%02ds" % s
 
 
-def images_show(images, shape, is_show=True, save_path=None,
-                axis_off=True, figure_size=(7, 7), dpi=300,
-                line_config: dict = None, is_gray=True):
-    cmap = None
-    if is_gray:
-        cmap = plt.get_cmap()
-        plt.gray()
+def save_dict2_josn(filepath, d: dict, mode='w'):
+    json_str = json.dumps(d, ensure_ascii=False)
 
-    titles = list(images.keys())
-    fig, axs = plt.subplots(nrows=shape[0], ncols=shape[1], constrained_layout=False, figsize=figure_size)
-
-    axs = axs.reshape(shape)
-    for i in range(shape[0]):
-        for j in range(shape[1]):
-            if i*shape[1] + j >= len(titles):
-                axs[i, j].axis('off')
-                continue
-            title = titles[i*shape[1] + j]
-            axs[i, j].set_title(title)
-            axs[i, j].imshow(images.get(title))
-            if line_config is None:
-                continue
-            if title in line_config.keys():
-                axs[i, j].plot(line_config[title]['x'], line_config[title]['y'],
-                               line_config[title]['color'],
-                               linewidth=line_config[title]['linewidth'],
-                               linestyle=line_config[title]['linestyle'])
-            if axis_off:
-                axs[i, j].axis('off')
-    plt.tight_layout()
-    if save_path is not None:
-        plt.savefig(save_path, dpi=dpi)
-    if is_show:
-        plt.show()
-    plt.close()
-    if is_gray:
-        plt.set_cmap(cmap)
-
+    with open(filepath, mode) as json_file:
+        json_file.write(json_str)

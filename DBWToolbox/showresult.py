@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import os
 from styleframe import StyleFrame
-
+from DBWToolbox.tools import remove_empty
 
 def write_excel(full_name, data_list: list,
                 sort_by=None, sort_axis=0, ascending=True,
@@ -132,7 +132,7 @@ def show_LIP(lines: dict, bounds, sub_range, is_show=True, save_path=None, lines
     fig, ax = plt.subplots(1, 1, figsize=(6, 4))
     for name in lines.keys():
         line = lines[name]
-        ax.plot(range(len(line)), line, linewidth=0.8, label=name,
+        ax.plot(range(len(line)), line, linewidth=0.5, label=name,
                 linestyle=lines_style[name], marker=lines_marker[name],
                 color=lines_color[name])
         # ax.legend(loc='upper right', frameon=False, prop={'size': 9})
@@ -194,3 +194,77 @@ def show_histogram(data, hatch=None, bar_width=-1, colors=None, x_label='', y_la
         plt.show()
 
     plt.close()
+
+def image_show(image, is_show=True, save_path=None,
+               axis_off=True, title=None, dpi=300,
+               is_gray=True):
+    cmap = None
+    if is_gray:
+        cmap = plt.get_cmap()
+        plt.gray()
+    plt.imshow(image)
+    if save_path is not None:
+        directory, _ = os.path.split(save_path)
+        os.makedirs(directory, exist_ok=True)
+        plt.savefig(save_path, dpi=dpi)
+    if axis_off:
+        plt.axis('off')
+    if title is not None:
+        plt.title(title)
+    if is_show:
+        plt.show()
+    plt.close()
+    if is_gray:
+        plt.set_cmap(cmap)
+
+def images_show(images, shape, is_show=True, save_path=None,
+                axis_off=True, figure_size=(7, 7), dpi=300,
+                line_config: dict = None, is_gray=True):
+    cmap = None
+    if is_gray:
+        cmap = plt.get_cmap()
+        plt.gray()
+
+    titles = list(images.keys())
+    fig, axs = plt.subplots(nrows=shape[0], ncols=shape[1], constrained_layout=False, figsize=figure_size)
+
+    axs = axs.reshape(shape)
+    for i in range(shape[0]):
+        for j in range(shape[1]):
+            if i*shape[1] + j >= len(titles):
+                axs[i, j].axis('off')
+                continue
+            title = titles[i*shape[1] + j]
+            axs[i, j].set_title(title)
+            axs[i, j].imshow(images.get(title))
+            if line_config is None:
+                continue
+            if title in line_config.keys():
+                axs[i, j].plot(line_config[title]['x'], line_config[title]['y'],
+                               line_config[title]['color'],
+                               linewidth=line_config[title]['linewidth'],
+                               linestyle=line_config[title]['linestyle'])
+            if axis_off:
+                axs[i, j].axis('off')
+    plt.tight_layout()
+    if save_path is not None:
+        plt.savefig(save_path, dpi=dpi)
+    if is_show:
+        plt.show()
+    plt.close()
+    if is_gray:
+        plt.set_cmap(cmap)
+
+def plot_metrics(metrics, is_remove_empty=True, metrics_name=None, range_begin=0):
+    if isinstance(metrics, np.ndarray):
+        metrics = metrics.item()
+    assert isinstance(metrics, dict), "Metrics should be dict"
+    if is_remove_empty:
+        metrics = remove_empty(metrics)
+    if metrics_name == None:
+        metrics_name = metrics.keys()
+    for metric_name in metrics_name:
+        metric = metrics[metric_name]
+        plt.plot(range(range_begin, len(metric)), metric[range_begin:], label=metric_name)
+    plt.legend()
+    plt.show()
