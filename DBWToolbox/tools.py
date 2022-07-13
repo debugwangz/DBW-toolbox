@@ -5,7 +5,7 @@ import pydicom
 # from matplotlib import pyplot as plt
 from math import ceil
 import json
-from skimage.external import tifffile as tif
+import tifffile as tif
 
 
 def HU_to_attuation(image, water):
@@ -34,7 +34,7 @@ def save_image2tif(image, filepath, filename, is_rewrite=True):
 
     if not type(image) is np.ndarray:
         image = np.array(image)
-    tif.imsave(os.path.join(filepath, filename + '.tif'), image)
+    tif.imwrite(os.path.join(filepath, filename + '.tif'), image)
     # Image.fromarray(image).save(os.path.join(filepath, filename + '.tif'))
 
 
@@ -42,7 +42,7 @@ def read_dicom_mayo(path,):
     s = pydicom.read_file(path)
     image = s.pixel_array
     image = image.astype(np.int16)
-    image[image == -2000] = 0
+    # image[image == -2000] = 0
     intercept = s.RescaleIntercept
     slope = s.RescaleSlope
     if slope != 1:

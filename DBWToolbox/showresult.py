@@ -116,7 +116,7 @@ def __default_hatch(names):
 
 
 def show_LIP(lines: dict, bounds, sub_range, is_show=True, save_path=None, lines_style=None,
-             lines_color=None, lines_width=None, lines_marker=None, y_max=-1,
+             lines_color=None, lines_width=None, lines_marker=None, ylim=None,
              loc1=2, loc2=4, xlabel='Pixel', ylabel='Intensity', dpi=300,
              legend_loc='upper right', ):
     if lines_style is None:
@@ -136,9 +136,8 @@ def show_LIP(lines: dict, bounds, sub_range, is_show=True, save_path=None, lines
                 linestyle=lines_style[name], marker=lines_marker[name],
                 color=lines_color[name])
         # ax.legend(loc='upper right', frameon=False, prop={'size': 9})
-
-    if y_max != -1:
-        plt.ylim(top=y_max)
+    if ylim is not None:
+        plt.ylim(ylim)
     axins = ax.inset_axes(bounds)
     # 画放大区域
     for name in lines.keys():
@@ -197,7 +196,7 @@ def show_histogram(data, hatch=None, bar_width=-1, colors=None, x_label='', y_la
 
 def image_show(image, is_show=True, save_path=None,
                axis_off=True, title=None, dpi=300,
-               is_gray=True):
+               is_gray=True, fontsize=16):
     cmap = None
     if is_gray:
         cmap = plt.get_cmap()
@@ -210,16 +209,24 @@ def image_show(image, is_show=True, save_path=None,
     if axis_off:
         plt.axis('off')
     if title is not None:
-        plt.title(title)
+        plt.title(title, fontsize=fontsize)
     if is_show:
         plt.show()
     plt.close()
     if is_gray:
         plt.set_cmap(cmap)
 
-def images_show(images, shape, is_show=True, save_path=None,
+def images_show(images:dict, shape=-1, is_show=True, save_path=None,
                 axis_off=True, figure_size=(7, 7), dpi=300,
-                line_config: dict = None, is_gray=True):
+                line_config: dict = None, is_gray=True, fontsize=16):
+    if len(images.keys()) == 1:
+        title = list(images.keys())[0]
+        image = images[title]
+        image_show(image, is_show, save_path, axis_off,
+                   title, dpi, is_gray, fontsize)
+        return
+    if shape == -1:
+        shape = (1, len(images.keys()))
     cmap = None
     if is_gray:
         cmap = plt.get_cmap()
@@ -235,7 +242,7 @@ def images_show(images, shape, is_show=True, save_path=None,
                 axs[i, j].axis('off')
                 continue
             title = titles[i*shape[1] + j]
-            axs[i, j].set_title(title)
+            axs[i, j].set_title(title, fontsize=fontsize)
             axs[i, j].imshow(images.get(title))
             if line_config is None:
                 continue
