@@ -16,12 +16,12 @@ class SolverBase(metaclass=abc.ABCMeta):
     def __init__(self, root_save_dir='', **kwargs):
         self.arge = kwargs
         self.init_attr(root_save_dir, **kwargs)
-        self.init_slover(**kwargs)
+        self.init_solver(**kwargs)
         self.init_dir()
         self.__init_resume(**kwargs)
 
     @abc.abstractmethod
-    def init_slover(self, **kwargs):
+    def init_solver(self, **kwargs):
         pass
 
     def __init_resume(self, **kwargs):
