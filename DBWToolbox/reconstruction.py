@@ -1,18 +1,23 @@
 import astra
 
 import numpy as np
+
+
 class Paramaters:
     def __init__(self):
         self.param = {}
         self.param['nx'] = 512
         self.param['ny'] = 512
-        self.param['nu'] = 1024
+        self.param['dect_count'] = 1024
         self.param['dod'] = 1500
         self.param['dso'] = 1000
         self.param['n_proj'] = 720
         self.param['startangle'] = 0
         self.param['endangle'] = 2 * np.pi
         self.param['detector_width'] = 1
+        self.param['algorithm'] = 'FBP_CUDA'
+        self.param['interation'] = -1
+        self.param['short_scan'] = False
 
         self.reuse = False
 

@@ -17,6 +17,9 @@ def get_sparse_image(full_image, sparse_nums):
     images = {}
     for sparse_num in sparse_nums:
         param = SparseViewParamaters(sparse_num).param
+        param['nx'] = full_image.shape[0]
+        param['ny'] = full_image.shape[1]
+        param['dect_count'] = full_image.shape[0] * 2
         sino = get_fan_sino_param(full_image, param)
         sinos[str(sparse_num)] = sino
         rec_image = recon_fan_param(sino, param)
