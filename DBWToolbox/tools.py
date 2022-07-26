@@ -6,6 +6,18 @@ import pydicom
 from math import ceil
 import json
 import tifffile as tif
+from torch_radon import RadonFanbeam
+
+
+def get_radon_fan(param):
+    angles = np.linspace(param['startangle'], param['endangle'],
+                              param['nProj'], endpoint=False)
+
+    radon = RadonFanbeam(param['nx'], det_count=param['nu'], angles=angles,
+                              source_distance=param['dso'],
+                              det_distance=param['dsd'] - param['dso'],
+                              det_spacing=param['detector_width'])
+    return radon
 
 
 def HU_to_attuation(image, water):

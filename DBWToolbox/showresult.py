@@ -205,7 +205,7 @@ def image_show(image, is_show=True, save_path=None,
     if save_path is not None:
         directory, _ = os.path.split(save_path)
         os.makedirs(directory, exist_ok=True)
-        plt.savefig(save_path, dpi=dpi)
+        plt.savefig(save_path, dpi=dpi, bbox_inches='tight')
     if axis_off:
         plt.axis('off')
     if title is not None:
@@ -216,14 +216,16 @@ def image_show(image, is_show=True, save_path=None,
     if is_gray:
         plt.set_cmap(cmap)
 
-def images_show(images:dict, shape=-1, is_show=True, save_path=None,
-                axis_off=True, figure_size=(7, 7), dpi=300,
+
+def images_show(images: dict, shape=-1, is_show=True, save_path=None,
+                axis_off=True, figure_size=(7, 7), dpi=300, title=None,
                 line_config: dict = None, is_gray=True, fontsize=16):
+
     if len(images.keys()) == 1:
-        title = list(images.keys())[0]
-        image = images[title]
+        image_title = list(images.keys())[0]
+        image = images[image_title]
         image_show(image, is_show, save_path, axis_off,
-                   title, dpi, is_gray, fontsize)
+                   image_title, dpi, is_gray, fontsize)
         return
     if shape == -1:
         shape = (1, len(images.keys()))
@@ -231,38 +233,40 @@ def images_show(images:dict, shape=-1, is_show=True, save_path=None,
     if is_gray:
         cmap = plt.get_cmap()
         plt.gray()
-
-    titles = list(images.keys())
+    images_titles = list(images.keys())
     fig, axs = plt.subplots(nrows=shape[0], ncols=shape[1], constrained_layout=False, figsize=figure_size)
-
     axs = axs.reshape(shape)
     for i in range(shape[0]):
         for j in range(shape[1]):
-            if i*shape[1] + j >= len(titles):
+            if i*shape[1] + j >= len(images_titles):
                 axs[i, j].axis('off')
                 continue
-            title = titles[i*shape[1] + j]
-            axs[i, j].set_title(title, fontsize=fontsize)
-            axs[i, j].imshow(images.get(title))
+            image_title = images_titles[i * shape[1] + j]
+            axs[i, j].set_title(image_title, fontsize=fontsize)
+            axs[i, j].imshow(images.get(image_title))
             if line_config is None:
                 continue
-            if title in line_config.keys():
-                axs[i, j].plot(line_config[title]['x'], line_config[title]['y'],
-                               line_config[title]['color'],
-                               linewidth=line_config[title]['linewidth'],
-                               linestyle=line_config[title]['linestyle'])
+            if image_title in line_config.keys():
+                axs[i, j].plot(line_config[image_title]['x'], line_config[image_title]['y'],
+                               line_config[image_title]['color'],
+                               linewidth=line_config[image_title]['linewidth'],
+                               linestyle=line_config[image_title]['linestyle'])
             if axis_off:
                 axs[i, j].axis('off')
     plt.tight_layout()
+    if title is not None:
+        plt.suptitle(title, fontsize=fontsize)
     if save_path is not None:
-        plt.savefig(save_path, dpi=dpi)
+        plt.savefig(save_path, dpi=dpi, bbox_inches='tight')
     if is_show:
         plt.show()
     plt.close()
     if is_gray:
         plt.set_cmap(cmap)
 
-def plot_metrics(metrics, is_remove_empty=True, metrics_name=None, range_begin=0):
+
+def plot_metrics(metrics, is_remove_empty=True, metrics_name=None, range_begin=0, title=None,
+                 xlabel=None, ylabel=None, save_path=None, dpi=300):
     if isinstance(metrics, np.ndarray):
         metrics = metrics.item()
     assert isinstance(metrics, dict), "Metrics should be dict"
@@ -274,4 +278,13 @@ def plot_metrics(metrics, is_remove_empty=True, metrics_name=None, range_begin=0
         metric = metrics[metric_name]
         plt.plot(range(range_begin, len(metric)), metric[range_begin:], label=metric_name)
     plt.legend()
+
+    if title is not None:
+        plt.title(title)
+    if xlabel is not None:
+        plt.xlabel(xlabel)
+    if ylabel is not None:
+        plt.ylabel(ylabel)
+    if save_path is not None:
+        plt.savefig(save_path, dpi=dpi, bbox_inches='tight')
     plt.show()
