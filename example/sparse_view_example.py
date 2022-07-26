@@ -2,7 +2,7 @@ from DBWToolbox.reconstruction import get_fan_sino_param, recon_fan_param, Param
 from scipy.io import loadmat
 from os.path import join as ospj
 from DBWToolbox.showresult import write_excel, read_excel_dict, show_LIP, show_histogram
-from DBWToolbox.tools import image_show, images_show
+from DBWToolbox.showresult import image_show, images_show
 from skimage.metrics import mean_squared_error as mse, structural_similarity as ssim
 
 
